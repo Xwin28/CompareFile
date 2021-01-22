@@ -49,7 +49,8 @@ namespace ECS_AnimationSystem {
             PlayAnimJobs(entity, index, entityCommandBuffer, skeletonData, ecsUnitAnimTypeEnum, GetAnimDir(dir), onComplete);
         }
 
-        public static void PlayAnimJobs(Entity entity, int index, EntityCommandBuffer.Concurrent entityCommandBuffer, Skeleton_Data skeletonData, ECS_UnitAnimType.TypeEnum ecsUnitAnimTypeEnum, UnitAnim.AnimDir animDir, Skeleton_Anim_OnComplete onComplete) {
+        public static void PlayAnimJobs(Entity entity, int index, EntityCommandBuffer.Concurrent entityCommandBuffer,
+            Skeleton_Data skeletonData, ECS_UnitAnimType.TypeEnum ecsUnitAnimTypeEnum, UnitAnim.AnimDir animDir, Skeleton_Anim_OnComplete onComplete) {
             if (IsAnimDifferentFromActive(skeletonData, ecsUnitAnimTypeEnum, animDir)) {
                 // Different from current, play anim
                 PlayAnimForcedJobs(entity, index, entityCommandBuffer, ecsUnitAnimTypeEnum, animDir, onComplete);
@@ -99,7 +100,7 @@ namespace ECS_AnimationSystem {
 
         public static void PlayAnimForcedJobs(Entity entity, int index, EntityCommandBuffer.Concurrent entityCommandBuffer, ECS_UnitAnimType.TypeEnum ecsUnitAnimTypeEnum, UnitAnim.AnimDir animDir, Skeleton_Anim_OnComplete onComplete) {
             Skeleton_Data skeletonData = GetSkeletonData(ecsUnitAnimTypeEnum, animDir, onComplete);
-            entityCommandBuffer.SetComponent(index, entity, skeletonData);
+            //entityCommandBuffer.SetComponent(index, entity, skeletonData);
 
             if (skeletonData.frameRate <= 0) { Debug.LogError("#################### FRAMERATE ZERO!"); }
         }

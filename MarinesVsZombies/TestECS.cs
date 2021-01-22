@@ -40,6 +40,7 @@ public class TestECS : MonoBehaviour {
 
 
     private void Awake() {
+       
         //Sound_Manager.Init((Sound_Manager.AudioType audioType) => .015f);
         instance = this;
         queuedActions = new NativeQueue<MarineShotZombieAction>(Allocator.Persistent);
@@ -55,7 +56,7 @@ public class TestECS : MonoBehaviour {
 
         shadowMesh = ECS_Animation.CreateMesh(9f, 6f);
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i <1; i++) {
             SpawnMarine();
         }
 
@@ -89,7 +90,7 @@ public class TestECS : MonoBehaviour {
         entityManager.SetComponentData(entity, new Skeleton_Data { frameRate = 1f });
         entityManager.SetComponentData(entity, new Skeleton_Material { materialTypeEnum = Skeleton_Material.TypeEnum.Marine });
         entityManager.SetComponentData(entity, new Skeleton_PlayAnim { ecsUnitAnimTypeEnum = ECS_UnitAnimType.TypeEnum.dBareHands_Idle, animDir = UnitAnim.AnimDir.Down });
-        entityManager.SetComponentData(entity, new MarineShoot { nextShootTimerMax = .1f });
+        entityManager.SetComponentData(entity, new MarineShoot { nextShootTimerMax = 0.1f });
         entityManager.SetComponentData(entity, new Health { health = 50 });
         entityManager.SetComponentData(entity, new MoveTo { move = false, position = spawnPosition, moveSpeed = 40f });
         entityManager.SetComponentData(entity, new EntityAnims { idleAnimType = ECS_UnitAnimType.TypeEnum.dMarine_Idle, walkAnimType = ECS_UnitAnimType.TypeEnum.dMarine_Walk });
@@ -97,9 +98,11 @@ public class TestECS : MonoBehaviour {
         entityManager.SetComponentData(entity, new FindTargetData { targetRange = 100f });
             
         ECS_Animation.PlayAnimForced(entity, ECS_UnitAnimType.TypeEnum.dBareHands_Idle, new Vector3(0, -1), default);
+        //ECS_Animation.PlayAnimForced(entity, ECS_UnitAnimType.TypeEnum.dMarine_Idle, new Vector3(0, -1), default);
     }
 
-    private void SpawnZombie(bool spawnZombieTop) {
+    private void SpawnZombie(bool spawnZombieTop) 
+    {
         EntityArchetype zombieArchetype = entityManager.CreateArchetype(
             typeof(Zombie),
             typeof(Skeleton_Data),
@@ -163,14 +166,14 @@ public class TestECS : MonoBehaviour {
         if (Input.GetKey(KeyCode.S)) { moveDir.y = -1f; }
         if (Input.GetKey(KeyCode.A)) { moveDir.x = -1f; }
         if (Input.GetKey(KeyCode.D)) { moveDir.x = +1f; }
-
+        
         moveDir = moveDir.normalized;
         float cameraMoveSpeed = 300f;
-        cameraFollowPosition += moveDir * cameraMoveSpeed * Time.deltaTime;
+        cameraFollowPosition += moveDir * cameraMoveSpeed * UnityEngine.Time.deltaTime;
 
         float zoomSpeed = 1500f;
-        if (Input.mouseScrollDelta.y > 0) cameraFollowZoom -= 1 * zoomSpeed * Time.deltaTime;
-        if (Input.mouseScrollDelta.y < 0) cameraFollowZoom += 1 * zoomSpeed * Time.deltaTime;
+        if (Input.mouseScrollDelta.y > 0) cameraFollowZoom -= 1 * zoomSpeed * UnityEngine.Time.deltaTime;
+        if (Input.mouseScrollDelta.y < 0) cameraFollowZoom += 1 * zoomSpeed * UnityEngine.Time.deltaTime;
 
         cameraFollowZoom = Mathf.Clamp(cameraFollowZoom, 20f, 200f);
     }
@@ -178,7 +181,7 @@ public class TestECS : MonoBehaviour {
     private float zombieSpawnTimer;
     private float zombieSpawnTimerMax = .2f;
     private void HandleZombieSpawning() {
-        zombieSpawnTimer -= Time.deltaTime;
+        zombieSpawnTimer -= UnityEngine.Time.deltaTime;
         if (zombieSpawnTimer < 0) {
             zombieSpawnTimer = zombieSpawnTimerMax;
             zombieSpawnTimerMax = .2f - Time.time * .002f;
@@ -289,7 +292,7 @@ public struct Skeleton_Material : IComponentData {
 
     protected override JobHandle OnUpdate(JobHandle inputDeps) {
         Job job = new Job {
-            deltaTime = Time.deltaTime,
+            deltaTime = UnityEngine.Time.deltaTime,
         };
         return job.Schedule(this, inputDeps);
     }
@@ -323,15 +326,16 @@ public class UnitMoveSystem : JobComponentSystem {
         Job job = new Job {
             deltaTime = UnityEngine.Time.deltaTime,
         };
-        JobHandle _jobhandle = job.Schedule(this, inputDeps);
-        _jobhandle.Complete();
-        return _jobhandle;
+        JobHandle _jobHandle = job.Schedule(this, inputDeps);
+        _jobHandle.Complete();
+        return _jobHandle;
     }
 
 }
 
 // Marine with no Target AI
-public class MarineNoTargetSystem : JobComponentSystem {
+public class MarineNoTargetSystem : JobComponentSystem 
+{
     
     [RequireComponentTag(typeof(Marine))]
     [ExcludeComponent(typeof(HasTarget))]
@@ -347,17 +351,18 @@ public class MarineNoTargetSystem : JobComponentSystem {
     protected override JobHandle OnUpdate(JobHandle inputDeps) {
         Job job = new Job {
         };
-        JobHandle _jobhandle = job.Schedule(this, inputDeps);
-        _jobhandle.Complete();
-        return _jobhandle;
+        JobHandle _jobHandle = job.Schedule(this, inputDeps);
+        _jobHandle.Complete();
+        return _jobHandle;
     }
 
 }
 
 // Marines Shoot at Target
-public class MarineTargetZombieSystem : JobComponentSystem {
+public class MarineTargetZombieSystem : JobComponentSystem 
+{
 
-    private struct Jobs : IJobForEachWithEntity<Translation, Skeleton_PlayAnim, HasTarget, MarineShoot> {
+    private struct Jobss : IJobForEachWithEntity<Translation, Skeleton_PlayAnim, HasTarget, MarineShoot> {
 
         public float time;
         public float deltaTime;
@@ -382,14 +387,14 @@ public class MarineTargetZombieSystem : JobComponentSystem {
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps) {
-        Jobs job = new Jobs {
+        Jobss job = new Jobss {
             time = UnityEngine.Time.time,
             deltaTime = UnityEngine.Time.deltaTime,
             queuedActions = TestECS.queuedActions.AsParallelWriter()
         };
-        JobHandle _jobhandle = job.Schedule(this, inputDeps);
-        _jobhandle.Complete();
-        return _jobhandle;
+        JobHandle _jobHandle = job.Schedule(this, inputDeps);
+        _jobHandle.Complete();
+        return _jobHandle;
     }
 
 }
@@ -487,7 +492,8 @@ public class Skeleton_PlayAnimSystem : JobComponentSystem {
                 skeletonPlayAnim.forced = false;
                 ECS_Animation.PlayAnimForcedJobs(entity, index, entityCommandBuffer, skeletonPlayAnim.ecsUnitAnimTypeEnum, skeletonPlayAnim.animDir, skeletonPlayAnim.onComplete);
             } else {
-                ECS_Animation.PlayAnimJobs(entity, index, entityCommandBuffer, skeletonData, skeletonPlayAnim.ecsUnitAnimTypeEnum, skeletonPlayAnim.animDir, skeletonPlayAnim.onComplete);
+                ECS_Animation.PlayAnimJobs(entity, index, entityCommandBuffer, skeletonData,
+                    skeletonPlayAnim.ecsUnitAnimTypeEnum, skeletonPlayAnim.animDir, skeletonPlayAnim.onComplete);
             }
         }
 
@@ -506,7 +512,7 @@ public class Skeleton_PlayAnimSystem : JobComponentSystem {
         JobHandle jobHandle = job.Schedule(this, inputDeps);
         jobHandle.Complete();
         endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(jobHandle);
-        
+
         return jobHandle;
     }
 
@@ -538,34 +544,101 @@ public class Skeleton_UpdaterJob : JobComponentSystem {
         Job job = new Job {
             deltaTime = UnityEngine.Time.deltaTime
         };
-        JobHandle _jobhandle = job.Schedule(this, inputDeps);
-        _jobhandle.Complete();
-        return _jobhandle;
+        JobHandle _jobHandle = job.Schedule(this, inputDeps);
+        _jobHandle.Complete();
+        return _jobHandle;
     }
 
 }
 
+
+
 [UpdateAfter(typeof(Skeleton_UpdaterJob))]
 public class Skeleton_Callbacks : JobComponentSystem {
-    
-    private struct Job : IJobForEachWithEntity<Skeleton_Data, Skeleton_PlayAnim> {
 
-        public void Execute(Entity entity, int index, ref Skeleton_Data skeletonData, ref Skeleton_PlayAnim skeletonPlayAnim) {
-            if (skeletonData.loopCount > 0 && skeletonData.onComplete.hasOnComplete) {
+
+    private struct Job : IJobForEachWithEntity<Skeleton_Data, Skeleton_PlayAnim>
+    {
+
+        public void Execute(Entity entity, int index, ref Skeleton_Data skeletonData, ref Skeleton_PlayAnim skeletonPlayAnim)
+        {
+            if (skeletonData.loopCount > 0 && skeletonData.onComplete.hasOnComplete)
+            {
                 skeletonPlayAnim.PlayAnim(skeletonData.onComplete.unitAnimTypeEnum, skeletonData.onComplete.animDir, default);
             }
         }
 
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps) {
-        Job job = new Job {
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
+    {
+        Job job = new Job
+        {
         };
         JobHandle _jobhandle = job.Schedule(this, inputDeps);
         _jobhandle.Complete();
         return _jobhandle;
     }
 
+    /*    private struct Job : IJobForEachWithEntity<Skeleton_Data, Skeleton_PlayAnim> {
+
+            public void Execute(Entity entity, int index, ref Skeleton_Data skeletonData, ref Skeleton_PlayAnim skeletonPlayAnim) {
+                if (skeletonData.loopCount > 0 && skeletonData.onComplete.hasOnComplete) {
+                    skeletonPlayAnim.PlayAnim(skeletonData.onComplete.unitAnimTypeEnum, skeletonData.onComplete.animDir, default);
+                }
+            }
+
+        }
+
+        private struct JobSkeleton_Callbacks : IJobParallelFor
+        {
+            public NativeArray<Skeleton_Data> m_Skeleton_Data;
+            public NativeArray<Skeleton_PlayAnim> m_Skeleton_PlayAnim;
+            public void Execute(int index)
+            {
+                if (m_Skeleton_Data[index].loopCount > 0 && m_Skeleton_Data[index].onComplete.hasOnComplete)
+                {
+                    m_Skeleton_PlayAnim[index].PlayAnim(m_Skeleton_Data[index].onComplete.unitAnimTypeEnum, m_Skeleton_Data[index].onComplete.animDir, default);
+                }
+            }
+        }
+
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            Job job = new Job
+            {
+            };
+            JobHandle _jobHandle = job.Schedule(this, inputDeps);
+            _jobHandle.Complete();
+            return _jobHandle;
+
+        }*/
+
+    /*    protected override void OnUpdate()
+        {
+
+
+            EntityQuery entityQuery = GetEntityQuery(typeof(Skeleton_Data), typeof(Skeleton_PlayAnim));
+            int ProcessorNumber = SystemInfo.processorCount;
+            NativeArray<Skeleton_Data> _Skeleton_Data = entityQuery.ToComponentDataArray<Skeleton_Data>(Allocator.TempJob);
+            NativeArray<Skeleton_PlayAnim> _Skeleton_PlayAnim = entityQuery.ToComponentDataArray<Skeleton_PlayAnim>(Allocator.TempJob);
+            int _Count = entityQuery.CalculateEntityCount();
+            Debug.Log("Coutn entity = " + _Count);
+            JobSkeleton_Callbacks _JobSkeleton_Callbacks = new JobSkeleton_Callbacks
+            {
+                m_Skeleton_Data = _Skeleton_Data,
+                m_Skeleton_PlayAnim = _Skeleton_PlayAnim
+            };
+            JobHandle _JobSkeleton_CallbacksHandler = _JobSkeleton_Callbacks.Schedule(_Count, (int)_Count / ProcessorNumber);
+            _JobSkeleton_CallbacksHandler.Complete();
+            entityQuery.CopyFromComponentDataArray(_Skeleton_PlayAnim);
+            entityQuery.CopyFromComponentDataArray(_Skeleton_Data);
+
+            _Skeleton_PlayAnim.Dispose();
+            _Skeleton_Data.Dispose();
+
+        }*/
 }
 
 
